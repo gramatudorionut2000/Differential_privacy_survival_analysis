@@ -1,0 +1,13 @@
+# CEVAE-Twins run of the dp_tuned arm.
+#
+# Inherits the arm's semantics unchanged from the twins30 config and overrides
+# only the data source and the output locations, so the two datasets differ in
+# exactly one respect and remain comparable.
+extends: ../arm_dp_tuned.yaml
+
+data:
+  dataset: cevae
+
+results_path: results_cevae/metrics/results.csv
+checkpoint_dir: results_cevae/checkpoints
+figures_dir: figures_cevae

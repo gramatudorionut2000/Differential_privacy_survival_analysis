@@ -1,0 +1,85 @@
+# Shared defaults. Every arm file `extends: base.yaml` and overrides only what
+# distinguishes it.
+# Study label. Left at the default so run_ids stay unprefixed; override it when
+# running a variant of the same arms on the same data -- e.g.
+#   --set name=no_weight data.cevae_weight_features=none
+# which keeps the two studies' rows distinct in one results file.
+name: main
+device: auto
+
+checkpoint_dir: results/checkpoints
+save_checkpoints: true
+
+# Grid axes, consumed by src/run_experiments.py.
+seeds: [0, 1, 2, 3, 4]
+epsilons: [0.5, 1.0, 3.0]
+# `baseline` ignores treatment entirely, so its estimated effect is identically
+# zero and its PEHE is exactly the zero-effect baseline.
+learners: [baseline, s_learner, t_learner, tarnet]
+
+data:
+  raw_path: data/Twin_Data.csv.gz
+  processed_dir: data/processed
+
+  # 9999 in the outcome columns means "survived the first year".
+  survived_code: 9999
+  # 8 means "unknown" in the 1/2-coded maternal risk factors.
+  unknown_code_binary: 8
+  add_missing_indicators: true
+  # Every 9 in this file is in range for its column, so they are kept. See the
+  # DataConfig docstring before flipping this.
+  drop_ambiguous_nines: false
+
+  # Both potential outcomes are recorded, so there is no assignment in the data
+  # -- only a choice of which outcome to reveal:
+  #   T ~ Bernoulli(sigmoid(s * z + noise)),  z = standardized random index over X.
+  # s = 0 would give a randomised trial; 1.0 gives moderate confounding.
+  confounding_strength: 1.0
+  assignment_noise_scale: 0.1
+  assignment_intercept: 0.0
+  assignment_seed: 12345
+  resample_treatment_per_seed: true
+
+  test_size: 0.2
+  val_size: 0.2
+  standardize: true
+
+model:
+  learner: tarnet
+  hidden_dims: [128, 64]
+  head_dims: [64]
+  dropout: 0.1
+  activation: relu
+  # BatchNorm breaks per-sample gradients; only 'none' or 'layer' are allowed.
+  norm: none
+
+optim:
+  lr: 0.001
+  batch_size: 256
+  epochs: 30
+  weight_decay: 0.0
+  optimizer: adam
+  # Left null on purpose: deriving a class weight from the training labels
+  # would be an unaccounted read of private data.
+  pos_weight: null
+  early_stopping_patience: null
+
+privacy:
+  enabled: false
+  target_epsilon: null
+  # null -> 1 / (2 * n_train)
+  target_delta: null
+  max_grad_norm: 1.0
+  accountant: rdp
+  # The T-learner's two models train on disjoint arms, so the pair costs
+  # max(eps0, eps1). Use 'sequential' for the conservative additive bound.
+  t_learner_budget: parallel
+
+tune:
+  enabled: false
+  n_trials: 8
+  # 'composed' = one composition through privacy.accountant (tightest).
+  accounting: composed
+  selection_metric: val_auroc
+  selection_mode: max
+  search_space: {}

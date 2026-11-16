@@ -1,0 +1,11 @@
+# Optional 5th config -- the mis-accounted version of arm 4.
+#
+# Identical to arm_dp_tuned except `tune.accounting: naive`, which calibrates
+# every trial to the full target_epsilon on its own and then quotes that
+# epsilon for the released model.
+
+extends: arm_dp_tuned.yaml
+arm: dp_tuned_naive
+
+tune:
+  accounting: naive

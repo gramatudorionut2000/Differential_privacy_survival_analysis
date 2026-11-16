@@ -1,0 +1,23 @@
+# Arm 2 -- non-private, tuned.
+#
+# The utility ceiling, and the reference for what tuning is worth when it costs
+# nothing but compute. The gap between this and arm 1 is the value of the
+# search; the gap between arms 3 and 4 is what survives once the search has to
+# be paid for in privacy.
+extends: base.yaml
+arm: nonprivate_tuned
+
+privacy:
+  enabled: false
+
+tune:
+  enabled: true
+  n_trials: 16
+  accounting: composed   # unused when privacy is off; kept for a uniform schema
+  selection_metric: val_auroc
+  selection_mode: max
+  search_space:
+    optim.lr: [0.0003, 0.001, 0.003]
+    optim.batch_size: [128, 256, 512]
+    model.hidden_dims: [[64, 32], [128, 64], [256, 128]]
+    model.dropout: [0.0, 0.1, 0.3]

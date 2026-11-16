@@ -1,0 +1,20 @@
+# Arm 3 -- DP-SGD, no tuning.
+#
+# The entire budget goes to a single training run with the fixed defaults from
+# base.yaml. Opacus calibrates the noise multiplier so that one run lands on
+# target_epsilon
+
+# This is the arm that "wins" whenever the search in arm 4 does not buy enough
+# to pay for its own noise
+extends: base.yaml
+arm: dp_notune
+
+privacy:
+  enabled: true
+  target_delta: null       # -> 1 / (2 * n_train)
+  max_grad_norm: 1.0
+  accountant: rdp
+  t_learner_budget: parallel
+
+tune:
+  enabled: false

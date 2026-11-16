@@ -1,0 +1,32 @@
+# Arm 4 -- DP-SGD with a privacy-aware hyperparameter search.
+#
+# The total budget is fixed at target_epsilon and the noise multiplier is
+# calibrated so that all n_trials runs together fit inside it (RDP composition,
+# solved by src.composition.calibrate_noise_for_trials). Every trial is
+# therefore noisier than the single run in arm 3.
+#
+# Against arm 3 at matched total epsilon, this asks: does a better
+# hyperparameter setting repay the extra noise that searching for it costs?
+
+extends: base.yaml
+arm: dp_tuned
+
+privacy:
+  enabled: true
+  target_delta: null
+  max_grad_norm: 1.0
+  accountant: rdp
+  t_learner_budget: parallel
+
+tune:
+  enabled: true
+  n_trials: 8
+  accounting: composed
+  selection_metric: val_auroc
+  selection_mode: max
+  search_space:
+    optim.lr: [0.0003, 0.001, 0.003]
+    optim.batch_size: [128, 256, 512]
+    model.hidden_dims: [[64, 32], [128, 64], [256, 128]]
+    model.dropout: [0.0, 0.1, 0.3]
+    privacy.max_grad_norm: [0.5, 1.0, 2.0]

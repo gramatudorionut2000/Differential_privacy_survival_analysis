@@ -1,0 +1,12 @@
+# Arm 1 -- non-private, fixed hyperparameters.
+#
+# The floor of the comparison: no privacy, no search. Runs once per (learner, seed); the epsilon axis
+# does not apply.
+extends: base.yaml
+arm: nonprivate_notune
+
+privacy:
+  enabled: false
+
+tune:
+  enabled: false
